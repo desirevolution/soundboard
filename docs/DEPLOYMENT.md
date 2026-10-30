@@ -49,7 +49,7 @@ The app intentionally has no login system. Protect all soundboard traffic via Ca
 
 | Route | Access policy |
 | --- | --- |
-| `/` (and `/style.css`, `/app.js`, `/audio.js`) | Soundboard audience |
+| `/` (and `/style.css`, `/app.js`, `/audio.js`, `/favicon.ico`, `/icon-*.png`, `/apple-touch-icon.png`) | Soundboard audience |
 | `/ws` | Soundboard audience; WebSocket upgrade |
 | `/api/sounds`, `/api/audio/*` | Soundboard audience |
 | `/admin/`, `/admin/admin.js`, `/admin/admin.css` | Administrators only |

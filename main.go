@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-//go:embed web/index.html web/style.css web/audio.js web/app.js web/admin.html web/admin.js web/admin.css
+//go:embed web/index.html web/style.css web/audio.js web/app.js web/admin.html web/admin.js web/admin.css web/favicon.ico web/icon-32.png web/icon-192.png web/icon-512.png web/apple-touch-icon.png
 var webFiles embed.FS
 
 //go:embed VERSION
@@ -128,7 +128,7 @@ func (s *Server) Handler() http.Handler {
 	}
 	files := http.FileServer(http.FS(static))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" && r.URL.Path != "/style.css" && r.URL.Path != "/audio.js" && r.URL.Path != "/app.js" {
+		if r.URL.Path != "/" && r.URL.Path != "/style.css" && r.URL.Path != "/audio.js" && r.URL.Path != "/app.js" && r.URL.Path != "/favicon.ico" && r.URL.Path != "/icon-32.png" && r.URL.Path != "/icon-192.png" && r.URL.Path != "/icon-512.png" && r.URL.Path != "/apple-touch-icon.png" {
 			http.NotFound(w, r)
 			return
 		}

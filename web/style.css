@@ -43,34 +43,47 @@
     .sound-grid { display: grid; grid-template-columns: repeat(auto-fill, 106px); column-gap: 16px; row-gap: 24px; justify-content: start; align-items: start; }
     .sound-item { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
     .sound-trigger { position: relative; display: block; isolation: isolate; width: 92px; height: 98px; padding: 0; border: none; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-    /* Stationary mounting well beneath the moving colored button. */
+    /* Clean, tactile round push button. No seams, quadrants or printed symbols. */
     .sound-trigger::before {
       content: ""; position: absolute; left: 2px; top: 7px; width: 88px; height: 88px; border-radius: 50%;
-      background: var(--well); box-shadow: inset 0 3px 5px rgb(0 0 0 / 45%), 0 1px 0 rgb(255 255 255 / 20%), 0 4px 6px var(--well-shadow);
+      background: var(--well);
+      box-shadow: inset 0 3px 5px rgb(0 0 0 / 48%), 0 1px 0 rgb(255 255 255 / 17%), 0 5px 8px var(--well-shadow);
     }
+    /* The raised outer bezel remains visible when the front surface is pressed. */
     .sound-trigger::after {
-      content: ""; position: absolute; top: 6px; left: 6px; width: 80px; height: 80px; border-radius: 50%;
-      background: color-mix(in srgb, var(--tone) 48%, #10141c); box-shadow: inset 0 2px 4px rgb(0 0 0 / 28%);
+      content: ""; position: absolute; left: 5px; top: 4px; width: 82px; height: 82px; border-radius: 50%;
+      background: linear-gradient(153deg,
+        color-mix(in srgb, var(--tone) 58%, white) 0%,
+        color-mix(in srgb, var(--tone) 88%, white) 28%,
+        var(--tone) 52%,
+        color-mix(in srgb, var(--tone) 55%, black) 100%);
+      box-shadow: 0 3px 0 var(--edge), 0 6px 0 var(--edge-dark), 0 10px 12px var(--well-shadow), inset 0 2px 2px rgb(255 255 255 / 32%);
     }
     .sound-cap {
-      pointer-events: none; z-index: 1; position: absolute; top: 0; left: 5px; width: 82px; height: 82px; border-radius: 50%;
-      border: 1px solid color-mix(in srgb, var(--tone) 72%, white);
-      background: radial-gradient(ellipse at 33% 17%, rgb(255 255 255 / 17%), transparent 55%), linear-gradient(158deg, color-mix(in srgb, var(--tone) 87%, white), var(--tone) 53%, color-mix(in srgb, var(--tone) 83%, black));
-      box-shadow: 0 2px 0 var(--edge), 0 5px 0 var(--edge), 0 7px 0 var(--edge-dark), 0 11px 13px var(--well-shadow), inset 0 1px 1px rgb(255 255 255 / 45%), inset 0 -2px 3px rgb(0 0 0 / 14%);
-      transform: translateY(0); transition: transform 110ms cubic-bezier(.18,.7,.27,1), box-shadow 110ms ease-out, filter 140ms ease;
+      pointer-events: none; z-index: 1; position: absolute; top: 4px; left: 8px; width: 76px; height: 76px; border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--tone) 70%, white);
+      background:
+        radial-gradient(ellipse 76% 60% at 30% 12%, rgb(255 255 255 / 33%), transparent 82%),
+        linear-gradient(155deg,
+          color-mix(in srgb, var(--tone) 65%, white) 0%,
+          color-mix(in srgb, var(--tone) 89%, white) 24%,
+          var(--tone) 57%,
+          color-mix(in srgb, var(--tone) 80%, black) 100%);
+      box-shadow:
+        inset 0 3px 3px rgb(255 255 255 / 32%),
+        inset 0 -5px 8px rgb(0 0 0 / 18%),
+        0 1px 3px rgb(0 0 0 / 17%);
+      transform: translateY(0);
+      transition: transform 110ms cubic-bezier(.18,.7,.27,1), box-shadow 110ms ease-out, filter 140ms ease;
     }
-    .sound-cap::before {
-      content: ""; position: absolute; inset: 6px; border-radius: inherit;
-      border: 1px solid rgb(255 255 255 / 15%);
-      background: linear-gradient(145deg, rgb(255 255 255 / 7%), transparent 54%);
-    }
+    /* Avoid extra overlay layers: they can form visible crossing lines in Firefox. */
     @media (hover: hover) {
-      .sound-trigger:hover:not(:disabled) .sound-cap { filter: brightness(1.07); }
+      .sound-trigger:hover:not(:disabled) .sound-cap { filter: brightness(1.06); }
     }
     .sound-trigger:is(:active, .is-pressed) .sound-cap {
-      transform: translateY(6px) scale(.985);
-      box-shadow: 0 1px 0 var(--edge), 0 2px 0 var(--edge-dark), 0 3px 5px var(--well-shadow), inset 0 1px 2px rgb(255 255 255 / 28%), inset 0 -1px 3px rgb(0 0 0 / 18%);
-      filter: brightness(.96);
+      transform: translateY(6px);
+      box-shadow: inset 0 1px 4px rgb(0 0 0 / 22%), inset 0 -2px 5px rgb(0 0 0 / 18%);
+      filter: brightness(.97);
     }
     .sound-trigger:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 50%; }
     .sound-trigger.is-playing .sound-cap { outline: 2px solid color-mix(in srgb, var(--tone) 75%, white); outline-offset: 5px; }
@@ -207,8 +220,8 @@
 .participant-admin{font-size:.67rem;color:var(--muted);white-space:nowrap;}
 .participant-instant{font-size:.9rem;color:#d89a3a;flex-shrink:0;}
 .participant.is-admin .participant-dot{box-shadow:0 0 0 2px var(--panel-border);}
-.sound-trigger.is-instant .sound-cap{box-shadow:0 2px 0 var(--edge),0 5px 0 var(--edge),0 7px 0 var(--edge-dark),0 11px 13px var(--well-shadow),0 0 0 4px var(--instant-color,#e6a34a),0 0 0 8px color-mix(in srgb,var(--instant-color,#e6a34a) 28%,transparent),inset 0 1px 1px rgb(255 255 255 / 45%);}
-.sound-trigger.is-instant .sound-cap::after{content:"⚡";position:absolute;right:-6px;top:-5px;font-size:16px;line-height:24px;width:24px;height:24px;text-align:center;border-radius:50%;background:var(--status-bg);color:var(--ink);box-shadow:0 2px 6px rgb(0 0 0 / 23%);}
+.sound-trigger.is-instant .sound-cap{box-shadow:inset 0 3px 3px rgb(255 255 255 / 32%),inset 0 -5px 8px rgb(0 0 0 / 18%),0 0 0 4px var(--instant-color,#e6a34a),0 0 0 8px color-mix(in srgb,var(--instant-color,#e6a34a) 22%,transparent)}
+
 .sound-trigger.is-instant.is-playing .sound-cap{outline:3px solid var(--player-color,#41ad7f);outline-offset:5px;}
 .instant-status{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;padding-top:9px;border-top:1px solid var(--panel-border);font-size:.76rem;}
 .instant-status[hidden]{display:none;}
@@ -220,7 +233,7 @@
 .status-main[hidden]{display:none;}
 
 .instant-help{margin:17px 0 0;color:var(--muted);font-size:.71rem;line-height:1.5}
-.sound-trigger.is-instant:is(:active,.is-pressed) .sound-cap{box-shadow:0 1px 0 var(--edge),0 2px 0 var(--edge-dark),0 3px 5px var(--well-shadow),0 0 0 4px var(--instant-color,#e6a34a),inset 0 1px 2px rgb(255 255 255 / 28%)}
+.sound-trigger.is-instant:is(:active,.is-pressed) .sound-cap{box-shadow:inset 0 1px 4px rgb(0 0 0 / 22%),0 0 0 4px var(--instant-color,#e6a34a),0 0 0 8px color-mix(in srgb,var(--instant-color,#e6a34a) 22%,transparent)}
 
 
 /* Compact, optional client-side library filters */
@@ -264,9 +277,9 @@
 /* Repository link in the upper-left corner (player and administration). */
 .site-brand{display:flex;align-items:center;gap:12px;min-width:0}
 .site-brand .site-title{min-width:0}
-.repo-link{flex:0 0 auto;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--panel-border);border-radius:11px;color:var(--ink);background:var(--panel);text-decoration:none;transition:background .14s ease,transform .14s ease}
-.repo-link svg{width:21px;height:21px;display:block}
-.repo-link:hover{background:var(--panel-border)}
+.repo-link{flex:0 0 auto;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:11px;color:var(--ink);background:transparent;text-decoration:none;transition:filter .14s ease,transform .14s ease}
+.repo-link img{width:38px;height:38px;display:block;border-radius:10px;object-fit:cover}
+.repo-link:hover{filter:brightness(1.1)}
 .repo-link:active{transform:translateY(1px)}
 .repo-link:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
-@media(max-width:560px){.site-brand{gap:9px}.repo-link{width:34px;height:34px;border-radius:9px}.repo-link svg{width:19px;height:19px}}
+@media(max-width:560px){.site-brand{gap:9px}.repo-link{width:34px;height:34px;border-radius:9px}.repo-link img{width:34px;height:34px;border-radius:9px}}
