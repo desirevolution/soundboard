@@ -1,11 +1,13 @@
 FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS build
 WORKDIR /src
-COPY go.mod VERSION ./
+COPY go.mod ./
 COPY *.go ./
 COPY web/ ./web/
 ARG TARGETOS=linux
 ARG TARGETARCH
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /out/soundboard .
+ARG VERSION=dev
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath \
+    -ldflags="-s -w -X main.buildVersion=${VERSION}" -o /out/soundboard .
 
 FROM alpine:3.22
 RUN apk add --no-cache ffmpeg ca-certificates \

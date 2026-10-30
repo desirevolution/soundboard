@@ -20,8 +20,8 @@ import (
 //go:embed web/index.html web/style.css web/audio.js web/app.js web/admin.html web/admin.js web/admin.css web/favicon.ico web/icon-32.png web/icon-192.png web/icon-512.png web/apple-touch-icon.png
 var webFiles embed.FS
 
-//go:embed VERSION
-var buildVersion string
+// buildVersion is set by release builds using -ldflags. Local builds use "dev".
+var buildVersion = "dev"
 
 type Server struct {
 	lib      *Library

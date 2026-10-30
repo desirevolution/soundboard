@@ -4,14 +4,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 )
 
 func TestVersionAndRepositoryLinks(t *testing.T) {
-	if v := strings.TrimSpace(buildVersion); v != "v0.1.1" {
-		t.Fatalf("unexpected initial version: %q", v)
+	if v := strings.TrimSpace(buildVersion); v != "dev" && !regexp.MustCompile(`^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`).MatchString(v) {
+		t.Fatalf("unexpected build version %q: expected dev or a release tag", v)
+	}
+	if _, err := os.Stat("VERSION"); !os.IsNotExist(err) {
+		t.Fatalf("source VERSION file must not be required: %v", err)
 	}
 	srv := NewServer(t.TempDir(), func(string) (time.Duration, error) { return time.Second, nil })
 	for _, path := range []string{"/", "/admin/"} {

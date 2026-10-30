@@ -1,6 +1,6 @@
 # Deployment and release guide
 
-Repository: https://github.com/desirevolution/soundboard · Initial release: **v0.1.0**
+Repository: https://github.com/desirevolution/soundboard
 
 ## Normal deployment (`compose.yml`)
 
@@ -17,12 +17,12 @@ Environment variables for Compose:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `SOUNDBOARD_IMAGE` | `ghcr.io/desirevolution/soundboard:latest` | Published image (override with `:0.1.0` to pin the initial release) |
+| `SOUNDBOARD_IMAGE` | `ghcr.io/desirevolution/soundboard:latest` | Published image (override with a fixed tag such as `:0.1.1` to pin a release) |
 | `SOUNDBOARD_BIND` | `0.0.0.0` | Host bind interface |
 | `SOUNDBOARD_PORT` | `8080` | Host port |
 | `PUID` / `PGID` | `1000` / `1000` | Host user/group that own `./sounds` |
 
-A package must actually exist in GHCR before Compose can pull it. Publish the initial GitHub Release `v0.1.0` to create `latest` and versioned tags. Re-running `docker compose pull && docker compose up -d` updates the image.
+A package must actually exist in GHCR before Compose can pull it. Publish a GitHub Release with a `vMAJOR.MINOR.PATCH` tag to create `latest` and versioned tags. Re-running `docker compose pull && docker compose up -d` updates the image.
 
 The `./sounds` mount is read/write and must be owned by the configured UID/GID. Back up `sounds/metadata.json` and `sounds/groups.json` together with the audio files.
 
@@ -35,13 +35,23 @@ PUID=$(id -u) PGID=$(id -g) docker compose -f compose.dev.yml up -d --build
 
 Builds the local checkout and binds **`127.0.0.1:8080`** so it is reachable only from the host. Stop the normal Compose service first if both would use the same port or use a different `SOUNDBOARD_PORT`.
 
-For a non-container development run, install Go 1.23+ and `ffprobe`, then run `go run . -sounds ./sounds -addr :8080`. `soundboard -version` prints the embedded release number.
+For a non-container development run, install Go 1.23+ and `ffprobe`, then run `go run . -sounds ./sounds -addr :8080`. `soundboard -version` prints `dev` for local builds; published release binaries display their GitHub tag.
 
-## GitHub Actions and initial release
+## GitHub Actions and releases (GitHub UI only)
 
-The workflow runs Go tests and vet on pull requests, pushes to `main` and published Releases. Pushes to `main` publish `main` and `sha-…` multi-architecture images. Publishing GitHub Release **`v0.1.0`** (matching `VERSION`) creates GHCR tags `0.1.0`, `0.1` and `latest` for AMD64/ARM64, plus release tarballs and SHA256 checksums for Linux AMD64/ARM64.
+The workflow runs Go tests and vet on pull requests, pushes to `main` and published Releases. Pushes to `main` publish `main` and `sha-…` multi-architecture images, whose embedded version is `dev`.
 
-On subsequent releases, update `VERSION` first, commit it, then publish the matching `vX.Y.Z` GitHub Release. GitHub Actions uses the repository `GITHUB_TOKEN`, with `packages: write` for GHCR and `contents: write` for release attachments. The binary release archive contains `soundboard`, `VERSION`, `README.md`, `docs/DEPLOYMENT.md`, `compose.yml`, `compose.dev.yml` and an example metadata file. Install `ffprobe` for standalone binary deployments.
+To publish the next version, **no source file or commit needs a version bump**:
+
+1. Push the desired code and workflow changes to `main`.
+2. On GitHub, open **Releases → Draft a new release**.
+3. In **Choose a tag**, enter a new tag such as `v0.1.1`, choose **Create new tag** and target `main`.
+4. Publish the release (not just save a draft).
+5. Wait for **Build and release** to complete. The workflow validates the tag format `vMAJOR.MINOR.PATCH`, embeds it in the Go binaries, publishes GHCR tags `0.1.1`, `0.1` and `latest` for AMD64/ARM64, and attaches Linux AMD64/ARM64 archives and SHA256 checksums.
+
+The release tag is the **single source of truth**. No tracked `VERSION` file is necessary. GitHub Actions uses the repository `GITHUB_TOKEN`, with `packages: write` for GHCR and `contents: write` for release attachments. The binary release archives contain `soundboard`, `README.md`, `docs/DEPLOYMENT.md`, `compose.yml`, `compose.dev.yml` and an example metadata file. Install `ffprobe` for standalone binary deployments.
+
+For manual builds, pass `-ldflags="-X main.buildVersion=v0.1.1"` to `go build`; without it `soundboard -version` prints `dev`. The Dockerfile accepts `--build-arg VERSION=v0.1.1` for the same purpose.
 
 ## Reverse proxy and authorization
 
