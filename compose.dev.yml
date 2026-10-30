@@ -1,0 +1,11 @@
+# Local development: build from this checkout, listen only on localhost.
+services:
+  soundboard:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SOUNDBOARD_PORT:-8080}:8080"
+    # Match the owner of ./sounds for uploads and deletes.
+    user: "${PUID:-1000}:${PGID:-1000}"
+    volumes:
+      - ./sounds:/data/sounds:rw

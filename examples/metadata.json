@@ -1,0 +1,5 @@
+{
+  "applaus.mp3": {"name": "Applaus", "group": "reaktionen"},
+  "lachen.mp3": {"name": "Lachen", "group": "reaktionen"},
+  "alarm.wav": {"name": "Alarm", "group": "signale"}
+}

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Soundboard</title>
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/audio.js"></script>
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="site-brand">
+        <a class="repo-link" href="https://github.com/desirevolution/soundboard" target="_blank" rel="noopener noreferrer" title="GitHub-Repository in neuem Tab öffnen" aria-label="GitHub-Repository in neuem Tab öffnen">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.75-.24.75-.53v-2.01c-3.06.67-3.71-1.3-3.71-1.3-.5-1.27-1.23-1.61-1.23-1.61-1-.69.08-.67.08-.67 1.1.08 1.68 1.13 1.68 1.13.98 1.67 2.57 1.19 3.19.91.1-.71.38-1.2.69-1.48-2.44-.28-5-1.22-5-5.43 0-1.2.43-2.18 1.13-2.95-.11-.28-.49-1.4.11-2.91 0 0 .92-.3 3.03 1.13a10.55 10.55 0 0 1 5.51 0c2.1-1.43 3.02-1.13 3.02-1.13.6 1.51.23 2.63.11 2.91.71.77 1.13 1.75 1.13 2.95 0 4.22-2.57 5.14-5.02 5.42.39.34.74 1.02.74 2.06V22c0 .29.2.64.76.53A11.1 11.1 0 0 0 12 .9Z"/></svg>
+        </a>
+        <div class="site-title"><h1>Soundboard</h1><p class="subtitle" id="connection" role="status">Verbinde …</p></div>
+      </div>
+      <div class="top-actions">
+        <button type="button" class="action-button nickname-button" id="name-button" title="Nickname ändern">👤 <span id="my-nickname">Name</span></button>
+        <label class="volume" title="Lautstärke auf diesem Gerät">♫ <input type="range" id="volume" min="0" max="100" value="70" aria-label="Lautstärke"><span id="volume-value">70%</span></label>
+        <a href="/admin/" class="action-button admin-link" title="Soundboard verwalten" aria-label="Administration öffnen">⚙</a>
+        <button type="button" class="action-button audio-activate" id="audio-activate" hidden>Audio aktivieren</button>
+      </div>
+    </header>
+    <p id="admin-mode-banner" class="feedback-banner admin-mode-banner" role="status" hidden>⚙ Admin-Modus aktiv · Normale Sounds und Sofort-Sounds sind auf diesem Gerät stumm. Probehören in der Administration ist möglich.</p>
+    <p id="feedback-banner" class="feedback-banner" role="alert" hidden></p>
+    <div class="app-layout">
+      <section class="board" aria-label="Sounds">
+        <div class="filter-toolbar">
+          <button type="button" class="action-button filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="filter-panel">⌕ &nbsp;Suche & Filter <span id="filter-active-dot" class="filter-active-dot" hidden></span></button>
+          <span id="filter-summary" class="filter-summary" aria-live="polite"></span>
+        </div>
+        <div id="filter-panel" class="filter-panel" hidden>
+          <label class="filter-field filter-search">Suchen
+            <input id="filter-search" type="search" placeholder="Soundname …" autocomplete="off" aria-label="Sounds suchen">
+          </label>
+          <label class="filter-field">Gruppe
+            <select id="filter-group" aria-label="Gruppe filtern"><option value="">Alle Gruppen</option></select>
+          </label>
+          <label class="filter-field">Sortierung
+            <select id="filter-sort" aria-label="Sounds sortieren">
+              <option value="asc">Name A–Z</option>
+              <option value="desc">Name Z–A</option>
+              <option value="group">Nach Gruppe</option>
+            </select>
+          </label>
+          <button type="button" class="action-button filter-reset" id="filter-reset">Zurücksetzen</button>
+        </div>
+        <div id="sound-grid" class="sound-grid" aria-live="polite"></div>
+        <p id="empty-state" class="empty-state" hidden>Noch keine Sounds vorhanden.</p>
+        <p class="instant-help">Klick: sofort bei allen · Shift + Klick: Warteschlange · Mobil: lange drücken zum Einreihen</p>
+      </section>
+      <aside class="participants" aria-label="Aktive Teilnehmer">
+        <div class="participants-heading"><h2>Online</h2><span id="online-count">0</span></div>
+        <ul class="participants-list" id="presence-list"><li>Noch niemand</li></ul>
+      </aside>
+    </div>
+  </main>
+  <aside id="queue-status" class="status playback-panel" aria-label="Wiedergabestatus" aria-live="polite" hidden>
+    <div class="playback-row" id="instant-row">
+      <span class="playback-icon" aria-hidden="true">⚡</span>
+      <div class="playback-details">
+        <span class="playback-type">Sofort</span>
+        <strong class="playback-name" id="instant-name"></strong>
+        <div class="playback-person"><span class="playback-person-dot" id="instant-dot"></span><span id="instant-by"></span></div>
+      </div>
+    </div>
+    <div class="playback-row" id="queue-main">
+      <span class="playback-icon" aria-hidden="true">♫</span>
+      <div class="playback-details">
+        <span class="playback-type">Warteschlange</span>
+        <strong class="playback-name" id="playing-label"></strong>
+        <div class="playback-person"><span class="playback-person-dot" id="queue-dot"></span><span id="playing-by"></span></div>
+      </div>
+      <span class="playback-count" id="waiting-label"></span>
+    </div>
+  </aside>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="nickname-dialog" aria-labelledby="nickname-heading">
+    <form id="nickname-form" class="nickname-form">
+      <h2 id="nickname-heading">Wie heißt du?</h2>
+      <p>Dein Nickname wird anderen Teilnehmern angezeigt und bei deinen Sounds genannt.</p>
+      <label for="nickname-input">Nickname</label>
+      <input id="nickname-input" name="nickname" type="text" autocomplete="nickname" maxlength="32" required placeholder="Dein Name" spellcheck="false">
+      <p class="form-error" id="nickname-error" role="alert" hidden>Bitte einen gültigen Nickname eingeben.</p>
+      <div class="dialog-actions">
+        <button type="button" class="action-button" id="nickname-cancel" hidden>Abbrechen</button>
+        <button type="submit" class="action-button action-primary">Speichern &amp; Audio aktivieren</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

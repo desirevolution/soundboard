@@ -1,0 +1,12 @@
+# Normal deployment: pull the published multi-arch image from GHCR.
+# Public bind: restrict access with your firewall / reverse proxy authentication.
+services:
+  soundboard:
+    image: ${SOUNDBOARD_IMAGE:-ghcr.io/desirevolution/soundboard:latest}
+    restart: unless-stopped
+    ports:
+      - "${SOUNDBOARD_BIND:-0.0.0.0}:${SOUNDBOARD_PORT:-8080}:8080"
+    # Match the owner of ./sounds for uploads and deletes.
+    user: "${PUID:-1000}:${PGID:-1000}"
+    volumes:
+      - ./sounds:/data/sounds:rw

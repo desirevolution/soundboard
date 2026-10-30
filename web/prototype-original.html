@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Soundboard – UX-Prototyp</title>
+  <style>
+
+    /* Physical, tactile buttons. A compact, framework-free visual prototype. */
+    :root {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: light dark;
+      --page: #f7f8f9;
+      --panel: #eceff2;
+      --panel-border: #dfe4e9;
+      --ink: #262c35;
+      --muted: #707b89;
+      --well: #222832;
+      --well-shadow: rgb(17 25 38 / 22%);
+      --status-bg: #ffffff;
+      --status-shadow: 0 12px 38px rgb(21 29 40 / 16%);
+      --focus: #356ad1;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #171b22;
+        --panel: #222832;
+        --panel-border: #323b48;
+        --ink: #f1f3f6;
+        --muted: #a2acb9;
+        --well: #0e1219;
+        --well-shadow: rgb(0 0 0 / 45%);
+        --status-bg: #2a313b;
+        --status-shadow: 0 14px 42px rgb(0 0 0 / 45%);
+        --focus: #a1beff;
+      }
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-height: 100%; }
+    body { margin: 0; min-height: 100vh; background: var(--page); color: var(--ink); }
+    button { font: inherit; }
+    .shell { width: min(100%, 1010px); margin-inline: auto; padding: 31px 28px 140px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+    h1 { margin: 0; font-size: 1.65rem; line-height: 1.16; letter-spacing: -.048em; font-weight: 780; }
+    .subtitle { margin: 5px 0 0; font-size: .78rem; line-height: 1.4; color: var(--muted); }
+    .sound-count { flex-shrink: 0; padding: 8px 12px; font-size: .74rem; font-weight: 650; color: var(--muted); background: var(--panel); border: 1px solid var(--panel-border); border-radius: 999px; }
+    .board { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 22px; padding: 27px 26px 29px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 30%), 0 8px 26px rgb(21 29 40 / 3%); }
+    /* Fixed-sized tiles: columns never stretch to fill the full container. */
+    .sound-grid { display: grid; grid-template-columns: repeat(auto-fill, 106px); column-gap: 16px; row-gap: 24px; justify-content: start; align-items: start; }
+    .sound-item { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .sound-trigger { position: relative; display: block; isolation: isolate; width: 92px; height: 98px; padding: 0; border: none; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    /* Stationary mounting well beneath the moving colored button. */
+    .sound-trigger::before {
+      content: ""; position: absolute; left: 2px; top: 7px; width: 88px; height: 88px; border-radius: 50%;
+      background: var(--well); box-shadow: inset 0 3px 5px rgb(0 0 0 / 45%), 0 1px 0 rgb(255 255 255 / 20%), 0 4px 6px var(--well-shadow);
+    }
+    .sound-trigger::after {
+      content: ""; position: absolute; top: 6px; left: 6px; width: 80px; height: 80px; border-radius: 50%;
+      background: color-mix(in srgb, var(--tone) 48%, #10141c); box-shadow: inset 0 2px 4px rgb(0 0 0 / 28%);
+    }
+    .sound-cap {
+      pointer-events: none; z-index: 1; position: absolute; top: 0; left: 5px; width: 82px; height: 82px; border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--tone) 72%, white);
+      background: radial-gradient(ellipse at 33% 17%, rgb(255 255 255 / 17%), transparent 55%), linear-gradient(158deg, color-mix(in srgb, var(--tone) 87%, white), var(--tone) 53%, color-mix(in srgb, var(--tone) 83%, black));
+      box-shadow: 0 2px 0 var(--edge), 0 5px 0 var(--edge), 0 7px 0 var(--edge-dark), 0 11px 13px var(--well-shadow), inset 0 1px 1px rgb(255 255 255 / 45%), inset 0 -2px 3px rgb(0 0 0 / 14%);
+      transform: translateY(0); transition: transform 110ms cubic-bezier(.18,.7,.27,1), box-shadow 110ms ease-out, filter 140ms ease;
+    }
+    .sound-cap::before {
+      content: ""; position: absolute; inset: 6px; border-radius: inherit;
+      border: 1px solid rgb(255 255 255 / 15%);
+      background: linear-gradient(145deg, rgb(255 255 255 / 7%), transparent 54%);
+    }
+    @media (hover: hover) {
+      .sound-trigger:hover:not(:disabled) .sound-cap { filter: brightness(1.07); }
+    }
+    .sound-trigger:is(:active, .is-pressed) .sound-cap {
+      transform: translateY(6px) scale(.985);
+      box-shadow: 0 1px 0 var(--edge), 0 2px 0 var(--edge-dark), 0 3px 5px var(--well-shadow), inset 0 1px 2px rgb(255 255 255 / 28%), inset 0 -1px 3px rgb(0 0 0 / 18%);
+      filter: brightness(.96);
+    }
+    .sound-trigger:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 50%; }
+    .sound-trigger.is-playing .sound-cap { outline: 2px solid color-mix(in srgb, var(--tone) 75%, white); outline-offset: 5px; }
+    .sound-trigger:disabled { cursor: not-allowed; opacity: .43; }
+    .sound-trigger:disabled .sound-cap { filter: grayscale(.25); }
+    .sound-name {
+      width: 106px; min-height: 2.65em; line-height: 1.35; text-align: center; font-size: .81rem; font-weight: 650;
+      overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+    }
+    .status { position: fixed; z-index: 5; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(420px, calc(100vw - 28px)); background: var(--status-bg); color: var(--ink); border: 1px solid var(--panel-border); border-radius: 13px; box-shadow: var(--status-shadow); padding: 12px 15px; }
+    .status[hidden] { display: none; }
+    .status-main { display: flex; align-items: center; gap: 11px; }
+    .status-signal { position: relative; display: flex; gap: 3px; height: 25px; width: 25px; align-items: center; justify-content: center; }
+    .status-signal i { width: 3px; border-radius: 3px; background: #43ab78; height: 9px; animation: sound-pulse 750ms ease-in-out infinite alternate; }
+    .status-signal i:nth-child(2) { height: 18px; animation-delay: 175ms; }
+    .status-signal i:nth-child(3) { height: 12px; animation-delay: 325ms; }
+    @keyframes sound-pulse { to { height: 5px; } }
+    .status-info { flex: 1; min-width: 0; }
+    .status-label { color: var(--muted); font-size: .68rem; line-height: 1.3; margin-bottom: 2px; }
+    .status-title { font-size: .86rem; line-height: 1.35; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status-count { white-space: nowrap; color: var(--muted); font-size: .75rem; }
+    .toast { position: fixed; z-index: 10; left: 50%; top: 17px; transform: translate(-50%, -10px); opacity: 0; pointer-events: none; background: var(--ink); color: var(--page); font-weight: 600; font-size: .79rem; padding: 9px 13px; border-radius: 9px; box-shadow: 0 8px 20px rgb(0 0 0 / 12%); transition: opacity 160ms ease, transform 160ms ease; white-space: nowrap; max-width: calc(100vw - 24px); text-overflow: ellipsis; overflow: hidden; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (max-width: 560px) {
+      .shell { padding: 24px 12px 140px; }
+      .topbar { margin-bottom: 22px; padding-inline: 4px; }
+      h1 { font-size: 1.5rem; }
+      .subtitle { font-size: .72rem; }
+      .sound-count { padding: 7px 9px; font-size: .69rem; }
+      .board { border-radius: 17px; padding: 18px 10px 23px; }
+      .sound-grid { grid-template-columns: repeat(auto-fill, 98px); column-gap: 10px; row-gap: 20px; }
+      .sound-name { width: 102px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>Soundboard</h1>
+        <p class="subtitle">Interaktive Vorschau · ohne Audio</p>
+      </div>
+      <span class="sound-count" id="sound-count"></span>
+    </header>
+    <section class="board" aria-label="Sounds">
+      <div class="sound-grid" id="sound-grid"></div>
+    </section>
+  </main>
+  <aside id="queue-status" class="status" aria-label="Simulierte Wiedergabe" aria-live="polite" hidden>
+    <div class="status-main">
+      <span class="status-signal" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div class="status-info">
+        <div class="status-label">Demo-Wiedergabe</div>
+        <div class="status-title" id="playing-label"></div>
+      </div>
+      <span class="status-count" id="waiting-label"></span>
+    </div>
+  </aside>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    'use strict';
+    // Example files all live in ONE directory. No files are read in this UI-only prototype.
+    const filenames = [
+      'alarm.mp3', 'applaus.mp3', 'buh.ogg', 'ding.mp3', 'fail.wav',
+      'glocke.ogg', 'jubel.mp3', 'knall.mp3', 'lachen.mp3',
+      'trommelwirbel.mp3', 'troete.mp3', 'tusch.mp3', 'wow.mp3'
+    ];
+
+    // Optional metadata: file name -> visible name and group.
+    // If absent: file name without extension and group "default".
+    const metadata = {
+      'applaus.mp3': { name: 'Applaus', group: 'reaktionen' },
+      'buh.ogg': { name: 'Buh!', group: 'reaktionen' },
+      'jubel.mp3': { name: 'Jubel', group: 'reaktionen' },
+      'lachen.mp3': { name: 'Lachen', group: 'reaktionen' },
+      'wow.mp3': { name: 'Wow!', group: 'reaktionen' },
+      'fail.wav': { name: 'Fail', group: 'effekte' },
+      'knall.mp3': { name: 'Knall', group: 'effekte' },
+      'trommelwirbel.mp3': { name: 'Trommelwirbel', group: 'effekte' },
+      'tusch.mp3': { name: 'Tusch', group: 'effekte' },
+      'alarm.mp3': { name: 'Alarm', group: 'signale' },
+      'glocke.ogg': { name: 'Glocke', group: 'signale' }
+    };
+
+    // A group's color is reused by ALL its buttons; no visual grouping.
+    const groupColors = {
+      default: '#8492a9',
+      reaktionen: '#db5359',
+      effekte: '#517dd0',
+      signale: '#d4a044'
+    };
+    function colorForGroup(group) {
+      if (Object.hasOwn(groupColors, group)) return groupColors[group];
+      let hash = 0;
+      for (const ch of group) hash = ((hash * 31) + ch.charCodeAt(0)) >>> 0;
+      return `hsl(${hash % 360} 55% 58%)`;
+    }
+    function fallbackName(filename) { return filename.replace(/\.[^.]+$/, ''); }
+    const collator = new Intl.Collator('de', { sensitivity: 'base', numeric: true });
+    const sounds = filenames.map((filename) => ({
+      filename,
+      name: metadata[filename]?.name || fallbackName(filename),
+      group: metadata[filename]?.group || 'default'
+    })).sort((a, b) => collator.compare(a.name, b.name) || collator.compare(a.filename, b.filename));
+
+    const grid = document.querySelector('#sound-grid');
+    const soundCount = document.querySelector('#sound-count');
+    const queueStatus = document.querySelector('#queue-status');
+    const playingLabel = document.querySelector('#playing-label');
+    const waitingLabel = document.querySelector('#waiting-label');
+    const toast = document.querySelector('#toast');
+    const buttons = new Map();
+    const waiting = [];
+    const MAX_WAITING = 20;
+    let playing = null;
+    let playTimer = null;
+    let toastTimer = null;
+
+    function notify(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1300);
+    }
+    function renderState() {
+      queueStatus.hidden = !playing && waiting.length === 0;
+      if (playing) playingLabel.textContent = playing.name;
+      waitingLabel.textContent = `${waiting.length} warten`;
+      const full = waiting.length >= MAX_WAITING;
+      for (const [filename, button] of buttons) {
+        button.disabled = full;
+        button.classList.toggle('is-playing', playing?.filename === filename);
+        button.title = full ? 'Warteschlange voll' : button.dataset.title;
+      }
+    }
+    function startNext() {
+      clearTimeout(playTimer);
+      playing = waiting.shift() || null;
+      renderState();
+      if (!playing) return;
+      // A fixed duration makes the queue interaction demonstrable without audio.
+      // No real playback or network requests are made by this prototype.
+      playTimer = setTimeout(startNext, 2500);
+    }
+    function enqueue(sound) {
+      if (waiting.length >= MAX_WAITING) { notify('Warteschlange voll'); return; }
+      waiting.push(sound);
+      if (!playing) startNext();
+      else renderState();
+      notify(playing === sound && waiting.length === 0 ? `${sound.name} · Demo startet` : `${sound.name} eingereiht`);
+    }
+    function createSoundButton(sound) {
+      const item = document.createElement('div');
+      item.className = 'sound-item';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'sound-trigger';
+      button.style.setProperty('--tone', colorForGroup(sound.group));
+      button.style.setProperty('--edge', `color-mix(in srgb, ${colorForGroup(sound.group)} 68%, black)`);
+      button.style.setProperty('--edge-dark', `color-mix(in srgb, ${colorForGroup(sound.group)} 53%, black)`);
+      button.setAttribute('aria-label', `${sound.name} zur Warteschlange hinzufügen`);
+      button.dataset.title = sound.name;
+      button.title = sound.name;
+      const cap = document.createElement('span');
+      cap.className = 'sound-cap';
+      cap.setAttribute('aria-hidden', 'true');
+      button.append(cap);
+      button.addEventListener('click', () => enqueue(sound));
+      // Brief visual press also for keyboard activation.
+      button.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') button.classList.add('is-pressed');
+      });
+      const release = () => button.classList.remove('is-pressed');
+      button.addEventListener('keyup', release);
+      button.addEventListener('blur', release);
+      const label = document.createElement('span');
+      label.className = 'sound-name';
+      label.textContent = sound.name;
+      label.title = sound.name;
+      item.append(button, label);
+      buttons.set(sound.filename, button);
+      return item;
+    }
+
+    sounds.forEach((sound) => grid.append(createSoundButton(sound)));
+    soundCount.textContent = `${sounds.length} Sounds`;
+    renderState();
+  </script>
+</body>
+</html>
