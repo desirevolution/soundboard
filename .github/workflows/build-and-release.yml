@@ -21,11 +21,16 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - name: Check release tag matches VERSION
+      - name: Validate release tag
         if: github.event_name == 'release'
+        shell: bash
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: test "$RELEASE_TAG" = "$(tr -d '\n' < VERSION)"
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Invalid release tag: $RELEASE_TAG (expected vMAJOR.MINOR.PATCH)" >&2
+            exit 1
+          fi
       - name: Ensure ffprobe is available for audio integration tests
         run: command -v ffprobe || (sudo apt-get update && sudo apt-get install -y ffmpeg)
       - name: Run tests with race detector
@@ -72,6 +77,8 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            VERSION=${{ github.event_name == 'release' && github.event.release.tag_name || 'dev' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -92,17 +99,21 @@ jobs:
           cache: false
       - name: Build release archives and checksums
         shell: bash
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail
           mkdir -p dist build
           for arch in amd64 arm64; do
-            CGO_ENABLED=0 GOOS=linux GOARCH="$arch" go build -trimpath -ldflags='-s -w' -o build/soundboard .
-            tar -czf "dist/soundboard-${GITHUB_REF_NAME}-linux-${arch}.tar.gz" \
+            CGO_ENABLED=0 GOOS=linux GOARCH="$arch" go build -trimpath \
+              -ldflags="-s -w -X main.buildVersion=${RELEASE_TAG}" -o build/soundboard .
+            tar -czf "dist/soundboard-${RELEASE_TAG}-linux-${arch}.tar.gz" \
               -C build soundboard \
-              -C "$GITHUB_WORKSPACE" VERSION README.md docs/DEPLOYMENT.md compose.yml compose.dev.yml examples/metadata.json
+              -C "$GITHUB_WORKSPACE" README.md docs/DEPLOYMENT.md compose.yml compose.dev.yml examples/metadata.json
           done
           (cd dist && sha256sum ./*.tar.gz > SHA256SUMS)
       - name: Upload to published release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" dist/* --clobber
