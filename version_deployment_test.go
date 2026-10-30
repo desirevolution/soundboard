@@ -10,7 +10,7 @@ import (
 )
 
 func TestVersionAndRepositoryLinks(t *testing.T) {
-	if v := strings.TrimSpace(buildVersion); v != "v0.1.0" {
+	if v := strings.TrimSpace(buildVersion); v != "v0.1.1" {
 		t.Fatalf("unexpected initial version: %q", v)
 	}
 	srv := NewServer(t.TempDir(), func(string) (time.Duration, error) { return time.Second, nil })
